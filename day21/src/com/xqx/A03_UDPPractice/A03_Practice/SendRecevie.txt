@@ -1,0 +1,84 @@
+package com.xqx.A03_UDPPractice.A03_Practice;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.util.Scanner;
+
+/**
+ * createAuthor：xingquanxiang
+ * createTime：2019/8/17 18:05
+ * description:
+ * UDP发送数据的步骤
+ *         1:创建发送端的Socket对象(DatagramSocket)
+ *         2:创建数据，并把数据打包
+ *         3:调用DatagramSocket对象的方法发送数据
+ *         4:关闭发送端
+ */
+public class SendReceiveMessage {
+    static String address = "";
+    public static void main(String[] args) throws IOException {
+        System.out.println("请输入好友的IP地址：");
+        Scanner scanner = new Scanner(System.in);
+        address = scanner.next().trim();
+        //创建并启动 接收消息线程
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    receive();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+
+        //创建并启动 发送消息线程
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    send();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
+
+    public static void receive() throws IOException {
+        while (true) {
+            //1:创建接收端的Socket对象(DatagramSocket) 参数为端口号
+            DatagramSocket datagramSocket = new DatagramSocket(10086);
+            // 2:创建一个数据包，用于接收数据
+            byte[] bytes = new byte[1024];
+            DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length);
+            // 3:调用DatagramSocket对象的方法接收数据
+            datagramSocket.receive(datagramPacket);
+            // 4:解析数据包，并把数据在控制台显示
+            System.out.println("接收到的数据：" + new String(datagramPacket.getData(), 0, datagramPacket.getLength()));
+            // 5:关闭接收端
+            datagramSocket.close();
+        }
+    }
+
+    public static void send() throws IOException {
+        // 1:创建发送端的Socket对象(DatagramSocket)
+        DatagramSocket datagramSocket = new DatagramSocket();
+        Scanner scanner = new Scanner(System.in);
+        // 2:创建数据，并把数据打包
+        while (true) {
+            System.out.println("请输入要发送的数据：");
+            String message = scanner.next();
+            if (message.equals("886"))
+                break;
+            byte[] bytes = message.getBytes();
+            DatagramPacket datagramPacket = new DatagramPacket(bytes, bytes.length, InetAddress.getByName(address), 10086);
+            // 3:调用DatagramSocket对象的方法发送数据
+            datagramSocket.send(datagramPacket);
+        }
+        // 4:关闭发送端
+        datagramSocket.close();
+    }
+}
